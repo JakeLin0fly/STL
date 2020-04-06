@@ -10,12 +10,12 @@
 
 ----
 
-> * 容器 -- **containers**
-> * 配置器 -- **allocators**
-> * 算法 -- **algorithms**
-> * 迭代器 -- **iterators**
-> * 适配器 -- **adaptors**
-> * 仿函数 -- **functors**
+* 容器 -- **containers**
+* 配置器 -- **allocators**
+* 算法 -- **algorithms**
+* 迭代器 -- **iterators**
+* 适配器 -- **adaptors**
+* 仿函数 -- **functors**
 
 ### STL六大组件关系
 
