@@ -217,17 +217,21 @@ inline void
 _Rb_tree_rotate_left(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 {
   _Rb_tree_node_base* __y = __x->_M_right;
-  __x->_M_right = __y->_M_left;
+  __x->_M_right = __y->_M_left; // 右子节点
+    /* Step 1: right_child 的左子树 B 变成 p 的右子树 */
   if (__y->_M_left !=0)
-    __y->_M_left->_M_parent = __x;
-  __y->_M_parent = __x->_M_parent;
+    __y->_M_left->_M_parent = __x; // B 的父节点修改
 
-  if (__x == __root)
+    /* Step 2: right_child 顶替 p 的位置 */
+  __y->_M_parent = __x->_M_parent;
+  if (__x == __root)// right_child 的父节点修改 
     __root = __y;
-  else if (__x == __x->_M_parent->_M_left)
-    __x->_M_parent->_M_left = __y;
-  else
+  else if (__x == __x->_M_parent->_M_left) // p 为父节点的左孩子
+    __x->_M_parent->_M_left = __y; 
+  else                                     // p 为父节点的右孩子
     __x->_M_parent->_M_right = __y;
+
+  /* Step 3: 修改 p 和 right_child 关系 */
   __y->_M_left = __x;
   __x->_M_parent = __y;
 }
@@ -235,18 +239,22 @@ _Rb_tree_rotate_left(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 inline void 
 _Rb_tree_rotate_right(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 {
-  _Rb_tree_node_base* __y = __x->_M_left;
-  __x->_M_left = __y->_M_right;
+  _Rb_tree_node_base* __y = __x->_M_left; // 左孩子
+  /* Step 1: left_child 的右子树 B 变成 p 的左子树 */
+  __x->_M_left = __y->_M_right; 
   if (__y->_M_right != 0)
-    __y->_M_right->_M_parent = __x;
-  __y->_M_parent = __x->_M_parent;
+    __y->_M_right->_M_parent = __x; // B 的父节点修改
 
-  if (__x == __root)
+  /* Step 2: left_child 顶替 p 的位置 */
+  __y->_M_parent = __x->_M_parent; // left_child 的父节点修改
+  if (__x == __root) // p 为根节点
     __root = __y;
-  else if (__x == __x->_M_parent->_M_right)
+  else if (__x == __x->_M_parent->_M_right) // p 为父节点的左孩子
     __x->_M_parent->_M_right = __y;
-  else
+  else                                      // p 为父节点的右孩子
     __x->_M_parent->_M_left = __y;
+   
+   /* Step 3: 修改 p 和 left_child 关系 */
   __y->_M_right = __x;
   __x->_M_parent = __y;
 }
@@ -254,46 +262,54 @@ _Rb_tree_rotate_right(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 inline void 
 _Rb_tree_rebalance(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 {
-  __x->_M_color = _S_rb_tree_red;
+  __x->_M_color = _S_rb_tree_red; // 新节点 设置为红
+  /* 当前新节点不是根节点，并且其父节点为红色 */
   while (__x != __root && __x->_M_parent->_M_color == _S_rb_tree_red) {
+    /* 父红，父节点为祖父节点的左孩子 */
     if (__x->_M_parent == __x->_M_parent->_M_parent->_M_left) {
-      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_right;
-      if (__y && __y->_M_color == _S_rb_tree_red) {
-        __x->_M_parent->_M_color = _S_rb_tree_black;
-        __y->_M_color = _S_rb_tree_black;
-        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
-        __x = __x->_M_parent->_M_parent;
+      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_right; // 伯父节点
+      /* 状况5：父(左)红，伯(右)红 */
+      if (__y && __y->_M_color == _S_rb_tree_red) { 
+        __x->_M_parent->_M_color = _S_rb_tree_black; //父变黑
+        __y->_M_color = _S_rb_tree_black; //伯变黑
+        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red; //祖父变红
+        __x = __x->_M_parent->_M_parent; //设置祖父为 当前新节点
       }
-      else {
+      else { // 伯父节点为黑色（或NIL）
+      /* 状况4：父(左)红，伯(右)黑(或NIL)，新节点为右子 #附加# */
         if (__x == __x->_M_parent->_M_right) {
           __x = __x->_M_parent;
           _Rb_tree_rotate_left(__x, __root);
         }
+        /* 状况3：父(左)红，伯(右)黑(或NIL)，新节点为左子 */
         __x->_M_parent->_M_color = _S_rb_tree_black;
         __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
         _Rb_tree_rotate_right(__x->_M_parent->_M_parent, __root);
       }
     }
     else {
-      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_left;
+      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_left; // 伯父节点
+      /* 状况5：父(右)红，伯(左)红 */
       if (__y && __y->_M_color == _S_rb_tree_red) {
-        __x->_M_parent->_M_color = _S_rb_tree_black;
-        __y->_M_color = _S_rb_tree_black;
-        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
-        __x = __x->_M_parent->_M_parent;
+        __x->_M_parent->_M_color = _S_rb_tree_black; //父变黑
+        __y->_M_color = _S_rb_tree_black; //伯父变黑
+        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red; //祖父变红
+        __x = __x->_M_parent->_M_parent; //祖父为 新节点
       }
       else {
+        /* 状况4：父(右)红，伯(左)黑(或NIL)，新节点为左子 */
         if (__x == __x->_M_parent->_M_left) {
           __x = __x->_M_parent;
           _Rb_tree_rotate_right(__x, __root);
         }
+        /* 状况3：父(右)红，伯(左)黑(或NIL)，新节点为右子 */
         __x->_M_parent->_M_color = _S_rb_tree_black;
         __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
         _Rb_tree_rotate_left(__x->_M_parent->_M_parent, __root);
       }
     }
   }
-  __root->_M_color = _S_rb_tree_black;
+  __root->_M_color = _S_rb_tree_black; // 根节点设置为黑色
 }
 
 inline _Rb_tree_node_base*
@@ -316,6 +332,7 @@ _Rb_tree_rebalance_for_erase(_Rb_tree_node_base* __z,
         __y = __y->_M_left;
       __x = __y->_M_right;
     }
+
   if (__y != __z) {          // relink y in place of z.  y is z's successor
     __z->_M_left->_M_parent = __y; 
     __y->_M_left = __z->_M_left;
@@ -362,6 +379,7 @@ _Rb_tree_rebalance_for_erase(_Rb_tree_node_base* __z,
       else                      // __x == __z->_M_left
         __rightmost = _Rb_tree_node_base::_S_maximum(__x);
   }
+  
   if (__y->_M_color != _S_rb_tree_red) { 
     while (__x != __root && (__x == 0 || __x->_M_color == _S_rb_tree_black))
       if (__x == __x_parent->_M_left) {
