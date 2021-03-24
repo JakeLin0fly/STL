@@ -11,7 +11,7 @@ description: STL容器deque是一种双向开口的连续线性空间。双向�
 ; sticky: 
 ---
 
-<img src="https://i.loli.net/2020/08/08/wGu91Lk2fCWIN5U.jpg" alt="deque示意图.jpg" style="zoom: 10%;" />
+![](https://gitee.com/jakel-in/images/raw/master/2020-08/deque示意图.jpg)
 
 ## deque概述
 
